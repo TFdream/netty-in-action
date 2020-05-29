@@ -43,7 +43,7 @@ public class OrderClientV2 {
     public void run() throws Exception {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-        RequestPendingCenter requestPendingCenter = new RequestPendingCenter();
+
         try {
             Bootstrap b = new Bootstrap(); // (1)
             b.group(workerGroup); // (2)
@@ -56,6 +56,7 @@ public class OrderClientV2 {
                     ChannelPipeline pipeline = ch.pipeline();
 
                     //注意：顺序不能错
+                    //handler的顺序：读保证自上而下，写保证自下而上就行了，读与写之间其实顺序无所谓，但是一般为了好看对称，我们是一组一组写。
                     pipeline.addLast(new OrderFrameDecoder());
                     pipeline.addLast(new OrderFrameEncoder());
 
@@ -63,7 +64,7 @@ public class OrderClientV2 {
                     pipeline.addLast(new OrderProtocolDecoder());
 
                     //处理响应结果
-                    pipeline.addLast(new OrderClientHandler(requestPendingCenter));
+                    pipeline.addLast(new OrderClientHandler());
 
                     //增加LOG
                     pipeline.addLast(new LoggingHandler(LogLevel.INFO));
@@ -74,9 +75,21 @@ public class OrderClientV2 {
             ChannelFuture f = b.connect(host, port).sync(); // (5)
             LOG.info("点餐系统-客户端, 连接服务器:{}:{}", host, port);
 
+            submitTask(f);
+
+            // Wait until the connection is closed.
+            f.channel().closeFuture().sync();
+        } finally {
+            workerGroup.shutdownGracefully();
+        }
+    }
+
+    private void submitTask(ChannelFuture f) throws Exception {
+
+        for (int i=0; i<1000; i++) {
             //1.发送点餐请求
             Long requestId = IdUtils.nextRequestId();
-            Command command = new OrderCommand(101, Arrays.asList("鱼香肉丝"));
+            Command command = new OrderCommand(IdUtils.nextSeatId(), Arrays.asList("鱼香肉丝"));
             RpcRequest request = new RpcRequest(requestId, command);
 
             //2.写入
@@ -86,17 +99,12 @@ public class OrderClientV2 {
 
             //3.等待响应结果
             CommandResultFuture future = new CommandResultFuture();
-            requestPendingCenter.add(requestId, future);
+            RequestPendingCenter.INSTANCE.add(requestId, future);
 
             //3.1 获取结果
             CommandResult result = future.get();
             LOG.info("点餐系统-客户端, 收到服务器:{}:{} 请求requestId:{} 响应结果:{}",
                     host, port, requestId, JsonUtils.toJson(result));
-
-            // Wait until the connection is closed.
-            f.channel().closeFuture().sync();
-        } finally {
-            workerGroup.shutdownGracefully();
         }
     }
 

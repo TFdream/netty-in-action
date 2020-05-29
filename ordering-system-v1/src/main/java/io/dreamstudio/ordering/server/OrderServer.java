@@ -44,6 +44,7 @@ public class OrderServer {
                             //pipeline
                             ChannelPipeline pipeline = ch.pipeline();
                             //注意：顺序不能错
+                            //handler的顺序：读保证自上而下，写保证自下而上就行了，读与写之间其实顺序无所谓，但是一般为了好看对称，我们是一组一组写。
                             pipeline.addLast(new OrderFrameDecoder());
                             pipeline.addLast(new OrderFrameEncoder());
 

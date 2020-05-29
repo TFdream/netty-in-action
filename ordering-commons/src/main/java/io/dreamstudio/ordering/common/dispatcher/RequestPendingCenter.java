@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Ricky Fung
  */
 public class RequestPendingCenter {
+    public static final RequestPendingCenter INSTANCE = new RequestPendingCenter();
+
     private final Map<Long, CommandResultFuture> futureMap = new ConcurrentHashMap<>();
 
     public void add(Long requestId, CommandResultFuture future) {

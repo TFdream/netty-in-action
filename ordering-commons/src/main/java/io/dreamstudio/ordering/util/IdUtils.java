@@ -10,6 +10,15 @@ public abstract class IdUtils {
 
     private static final AtomicLong REQUEST_COUNTER = new AtomicLong(1);
     private static final AtomicLong ORDER_COUNTER = new AtomicLong(1);
+    private static final AtomicLong SEAT_COUNTER = new AtomicLong(1);
+
+    /**
+     * 生成座位ID
+     * @return
+     */
+    public static long nextSeatId() {
+        return SEAT_COUNTER.getAndIncrement();
+    }
 
     /**
      * 生成订单ID
