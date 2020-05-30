@@ -1,7 +1,6 @@
 package io.dreamstudio.ordering.common.auth;
 
 import io.dreamstudio.ordering.common.Command;
-import io.dreamstudio.ordering.common.CommandResult;
 
 /**
  * @author Ricky Fung
@@ -10,8 +9,13 @@ public class AuthCommand extends Command {
     private String userName;
     private String password;
 
+    public AuthCommand(String userName, String password) {
+        this.userName = userName;
+        this.password = password;
+    }
+
     @Override
-    public CommandResult execute() {
+    public AuthCommandResult execute() {
         if ("admin".equalsIgnoreCase(userName)) {
             AuthCommandResult result = new AuthCommandResult();
             result.setPassAuth(true);

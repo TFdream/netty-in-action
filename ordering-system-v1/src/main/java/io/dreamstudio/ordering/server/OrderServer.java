@@ -6,6 +6,7 @@ import io.dreamstudio.ordering.server.codec.OrderProtocolDecoder;
 import io.dreamstudio.ordering.server.codec.OrderProtocolEncoder;
 import io.dreamstudio.ordering.server.handler.OrderServerProcessHandler;
 import io.dreamstudio.ordering.server.handler.ServerIdleCheckHandler;
+import io.dreamstudio.ordering.server.handler.UserAuthHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -31,8 +32,11 @@ public class OrderServer {
     }
 
     public void run() throws Exception {
+
         EventLoopGroup bossGroup = new NioEventLoopGroup(); // (1)
         EventLoopGroup workerGroup = new NioEventLoopGroup();
+
+        UserAuthHandler userAuthHandler = new UserAuthHandler();
         try {
             ServerBootstrap b = new ServerBootstrap(); // (2)
             b.group(bossGroup, workerGroup)
@@ -58,6 +62,9 @@ public class OrderServer {
 
                             pipeline.addLast("orderProtocolEncoder", new OrderProtocolEncoder());
                             pipeline.addLast("orderProtocolDecoder", new OrderProtocolDecoder());
+
+                            //用户身份鉴权
+                            pipeline.addLast("userAuthHandler", userAuthHandler);
 
                             pipeline.addLast("orderProcessHandler", new OrderServerProcessHandler());
                         }

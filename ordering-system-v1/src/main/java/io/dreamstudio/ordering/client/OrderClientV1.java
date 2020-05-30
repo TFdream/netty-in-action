@@ -9,6 +9,7 @@ import io.dreamstudio.ordering.client.handler.OrderClientHandler;
 import io.dreamstudio.ordering.common.Command;
 import io.dreamstudio.ordering.common.CommandResult;
 import io.dreamstudio.ordering.common.RpcRequest;
+import io.dreamstudio.ordering.common.auth.AuthCommand;
 import io.dreamstudio.ordering.common.dispatcher.CommandResultFuture;
 import io.dreamstudio.ordering.common.dispatcher.RequestPendingCenter;
 import io.dreamstudio.ordering.common.order.OrderCommand;
@@ -84,6 +85,12 @@ public class OrderClientV1 {
             // Start the client.
             ChannelFuture f = b.connect(host, port).sync(); // (5)
             LOG.info("点餐系统-客户端, 连接服务器:{}:{}", host, port);
+
+            //身份鉴权
+            Command authCommand = new AuthCommand("admin", "admin");
+            RpcRequest authRequest = new RpcRequest(IdUtils.nextRequestId(), authCommand);
+            //发送
+            f.channel().writeAndFlush(authRequest);
 
             //1.发送点餐请求
             Long requestId = IdUtils.nextRequestId();
