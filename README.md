@@ -1,5 +1,8 @@
 # netty-in-action
-Netty源码剖析与实战配套代码
+[Netty源码剖析与实战](https://time.geekbang.org/course/intro/237)配套代码。
+
+
+![netty_in_action](docs/images/netty_in_action.jpeg)
 
 ## Requirements
 * JDK 1.8+
@@ -7,4 +10,4 @@ Netty源码剖析与实战配套代码
 
 ## 协议封装
 数据结构如下:
-![ordering protocol](../docs/images/ordering_protocol.png)
+![ordering protocol](docs/images/ordering_protocol.png)
