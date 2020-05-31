@@ -14,6 +14,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslHandler;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +41,15 @@ public class OrderServer {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
         UserAuthHandler userAuthHandler = new UserAuthHandler();
+
+        //SSL
+        SelfSignedCertificate ssc = new SelfSignedCertificate();
+        System.out.println(ssc.certificate());
+        System.out.println(ssc.privateKey());
+
+        SslContext sslContext = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey())
+                .build();
+
         try {
             ServerBootstrap b = new ServerBootstrap(); // (2)
             b.group(bossGroup, workerGroup)
@@ -54,6 +67,10 @@ public class OrderServer {
 
                             //空闲检测
                             pipeline.addLast("idleCheckHandler", new ServerIdleCheckHandler());
+
+                            //SSL
+                            SslHandler sslHandler = sslContext.newHandler(ch.alloc());
+                            pipeline.addLast("sslHandler", sslHandler);
 
                             //注意：顺序不能错
                             //handler的顺序：读保证自上而下，写保证自下而上就行了，读与写之间其实顺序无所谓，但是一般为了好看对称，我们是一组一组写。

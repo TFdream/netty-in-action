@@ -22,6 +22,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +50,9 @@ public class OrderClientV1 {
     public void run() throws Exception {
         EventLoopGroup workerGroup = new NioEventLoopGroup();
 
-
+        //SSL
+        SslContext sslContext = SslContextBuilder.forClient()
+                .build();
         try {
             Bootstrap b = new Bootstrap(); // (1)
             b.group(workerGroup); // (2)
@@ -61,6 +66,10 @@ public class OrderClientV1 {
 
                     //增加LOG
                     pipeline.addLast("loggingHandler", new LoggingHandler(LogLevel.INFO));
+
+                    //SSL
+                    SslHandler sslHandler = sslContext.newHandler(ch.alloc());
+                    pipeline.addLast("sslHandler", sslHandler);
 
                     //空闲检测
                     pipeline.addLast("idleStateHandler", new IdleStateHandler(0, 15, 0, TimeUnit.SECONDS));
